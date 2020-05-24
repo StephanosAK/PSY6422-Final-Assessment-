@@ -1,0 +1,263 @@
+---
+title: "Project-PSY6422"
+author: "Stephanos Alexandros Kontogouris"
+date: "20/05/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#this library for most graph and data functions
+library(tidyverse) 
+
+#this library provides extra themes to for graph styliziation
+library(ggthemes)  
+
+#this library enables the plotting of two graphs side by side
+library(gridExtra) 
+
+
+```
+
+## Substance use disorder related deaths in Greece from 1990-2017
+
+This project will attempt to provide a visualization of the case numbers of __deaths from substance use disorders__ in Greece from the year _1990 until 2017_. 
+The past few decades, Greece has faced an eminent drug addiciton problem which grew even worse with the Greek government-debt crisis of 2009 __(1)__. Insufficient economic opportunities and poor health care have only helped to enlarge the problem of substance use disorders in Greece, resulting in an increase in drug related deaths, either directly from overdose or indirectly from injuries and disease. This is especially true for intravenous heroin users who represent the majority of the drug addicts in Greece __(2)__ and whose unhygienic patterns of behaniour result in severe HIV outbrakes amongst them __(3,4).__ _(Note that the data visualized here refer only to direct deaths from drug overdose and not drug related deaths in general)_.  
+
+
+### Aim of Project
+
+Different political parties and organizations (e.g. [https://www.drugfreeworld.org/]) have attempted to reduce the drug problem in Greece and vizualization of these data can hint to weather any actions taken in the past years have helped in reducing the problem. 
+
+
+### Data Origins
+
+The data concerning substance use disorder deaths in Greece (1990-2017) are taken from _Our World in Data webpage_ [https://ourworldindata.org/grapher/deaths-substance-disorders?time=latest&country=GRC] 
+
+The data concerning general cause of deaths in Greece (1990-2017) are taken from _Our World in Data webpage_ [https://ourworldindata.org/grapher/annual-number-of-deaths-by-cause?time=latest&country=GRC]
+
+
+
+```{r data}
+
+#loading the data of drug related deaths
+df1 =read.csv(
+  'C:/Users/steav/Desktop/Msc CNHN/Data Analysis and Visualization/Project/Project6422/DATAgr_deaths_substances_disorder.csv') 
+
+#loading the data for general causes of death for further comparisons
+df2 =read.csv(
+  'C:/Users/steav/Desktop/Msc CNHN/Data Analysis and Visualization/Project/Project6422/DATAgr_general_causes_of_death.csv') 
+```
+
+
+
+### Data Preparation
+
+```{r}
+
+#Tidying 1st set of data (Drug Deaths)
+dfd <- gather(df1, Drug, Deaths, -Year)
+
+#Tidying 2nd set of data (General Causes of Death)
+dfg <- df2 %>% select (-c(Intestinal.infectious.diseases..deaths.,
+                  Protein.energy.malnutrition..deaths.,
+                  Cardiovascular.diseases..deaths.,Dementia..deaths.,
+                  Kidney.disease..deaths.,
+                  Lower.respiratory.infections..deaths.,
+                  Respiratory.diseases..deaths.,
+                  Liver.diseases..deaths.,Digestive.diseases..deaths.,
+                  Cancers..deaths. ,Parkinson.disease..deaths.,
+                  Maternal.disorders..deaths.,
+                  Neonatal.disorders..deaths.,
+                  Alcohol.use.disorders..deaths.,
+                  Diarrheal.diseases..deaths.,
+                  Heat..hot.and.cold.exposure...deaths.,
+                  Nutritional.deficiencies..deaths.,Diabetes..deaths.,
+                  Poisonings..deaths.,Meningitis..deaths.,
+                  Hepatitis..deaths.,Road.injuries..deaths.))
+dfg <- gather(dfg, Cause, Deaths, -Year)
+
+#show part of 1st dataset 
+head(dfd)
+
+#show part of 2nd dataset
+head(dfg)
+```
+
+__Tidying 1:__ All the differnet drug variables will be put together under the name Drug to be more managable
+
+__Tidying 2:__ Remove all except variables we need. These particular set of data will be used to show the prevelance of drug disorder deaths by comparing them to other causes of death. However, the general causes of death are plenty and some have extremely high numbers which would distort the graph and take the focus away from drug disorder deaths. Moreover, all the differnet variables of death causes will be put together under the name Cause to be more managable
+
+
+
+_Note1: The selection criteria for the second data set were based on the selection of variables with values not exceeding 600 and the exclusion of several vaiables with values less than 100._ 
+_Note2: Although the data represent cases of deaths, they are represented in decimals and the reason why is unkown_
+
+
+
+### Visulisation 1: General Causes of Death 
+
+```{r v_general-causes-of-deaths}
+
+g <- ggplot(dfg, aes(x=Year, y=Deaths)) + 
+  geom_line(aes(color=Cause),size=0.8) + 
+  geom_point(size = 1, alpha=0.3) + 
+  theme_calc()+ 
+  theme(plot.background=element_rect(fill="lavenderblush3")) + 
+  scale_color_manual(values=c("deepskyblue2", "red2","darkorchid3",
+                              "green3","slateblue2","grey0","tomato")) +
+  scale_x_continuous(breaks=seq(1990, 2017, 3)) +
+  labs( x = "Year", y = "General Causes of Deaths", 
+        title = "General Causes of Death in Relation to Drug Use Disorder Deaths",
+        subtitle = "(1990-2017)") + 
+  theme(axis.title = element_text( angle = 360, 
+                                   color="black", size=12, face=3)) + 
+  theme(axis.text = element_text(angle = 10, 
+                                 color="black", size=8, face=3))
+plot(g)
+
+```
+
+This graph illustrates the prevelance of drug use disorder deaths __(shown in red)__ in relation to other general causes of deaths in Greece.
+
+
+
+### Visulisation 2: Substance Use Disorder Deaths
+
+```{r v_substance-use-disorder-deaths}
+
+d <- ggplot(dfd, aes(x=Year, y=Deaths)) + 
+  geom_line(aes(color=Drug), size=1.2) +
+  geom_point(size = 1, alpha=0.3) +
+  theme_dark() +
+  theme(plot.background=element_rect(fill="goldenrod1")) + 
+  scale_color_manual(values=c("deepskyblue2", "grey84","darkorchid3","goldenrod1","red2")) +
+  scale_x_continuous(breaks=seq(1990, 2017, 3)) + 
+  labs( x = "Years", y = "Drug Deaths", 
+        title ="Substance Use Disorder Related Deaths In Greece",subtitle = "(1990-2017)", 
+        caption = 
+          "Note the prominence of opiod related deaths over the other drug use deaths.") +
+  theme(axis.title = element_text( angle = 360, 
+                                   color="black", size=13, face=3)) + 
+  theme(axis.text = element_text(angle = 10, 
+                                 color="red", size=8, face=3))
+plot(d)
+
+```
+
+
+The plot illustrates the evident prevalnce of opiod (heroin) related deaths. Examination of the graph shows a peak that is reached in 2005, followed by a significant drop until a plateu in 2014. 
+Importanlty, this graphs illustrates, in accordance with the reports ( __2__ ), heroin represents the primary drug responsible for the drug related deaths. An additional visualization will illustrate this fact more.
+
+### Visualisation 3: General Drug Related deaths and Heroin Related Deaths
+
+```{r data prep, results=TRUE}
+
+#Tidying 3
+dfh <- df1 %>% select (-c(Cocaine..deaths.,Alcohol..deaths.,Other.illicit.drugs..deaths.,Amphetamine..deaths.))
+
+#Tidying 4
+dfdr <- df2 %>% select (-c(Intestinal.infectious.diseases..deaths.,
+                  Protein.energy.malnutrition..deaths.,
+                  Cardiovascular.diseases..deaths.,
+                  Dementia..deaths.,Kidney.disease..deaths.,
+                  Lower.respiratory.infections..deaths.,
+                  Respiratory.diseases..deaths.,
+                  Liver.diseases..deaths.,Digestive.diseases..deaths.,
+                  Cancers..deaths. ,Parkinson.disease..deaths.,
+                  Maternal.disorders..deaths.,
+                  Neonatal.disorders..deaths.,
+                  Alcohol.use.disorders..deaths.,
+                  Diarrheal.diseases..deaths.,
+                  Heat..hot.and.cold.exposure...deaths.,
+                  Nutritional.deficiencies..deaths.,Diabetes..deaths.,
+                  Poisonings..deaths.,Meningitis..deaths.,
+                  Hepatitis..deaths.,Road.injuries..deaths.,
+                  Fire..deaths.,Drowning..deaths.,
+                  Homicide..deaths.,HIV.AIDS..deaths.,
+                  Tuberculosis..deaths., Suicide..deaths.,))
+```
+
+
+__Tidying 3:__ Making a new set of data by excluding all variables except the chronology and the Opiod(Heroin) realeted deaths
+
+__Tidying 4:__ Making a new set of data by excluding all variables except the chronology and the Drug disorder realeted deaths which contain the combined death cases of all drugs
+
+
+
+```{r v_general-drug-related-deaths-and-heroin-related-deaths}
+
+
+#Plot the heroine use related deaths graph 
+h <- ggplot(dfh, aes(x=Year, y=Opioids..deaths.)) + 
+   geom_line(color="red", size=1.2) +
+   geom_point(size = 1, alpha=0.3) +
+   theme_grey() +
+   theme(plot.background=element_rect(fill="grey87")) + 
+   scale_x_continuous(breaks=seq(1990, 2017, 27)) + 
+   labs( x = "Years", y = "Heroin Deaths", 
+         title ="Heroin Related Deaths In Greece",
+         subtitle = "(1990-2017)") +
+   theme(axis.title = element_text( angle = 360, 
+                                    color="black", size=13, face=3)) + 
+   theme(axis.text = element_text(angle = 10, 
+                                  color="red", size=8, face=3))
+
+
+#Plot the Drug use disorder deaths graph
+dr <- ggplot(dfdr, aes(x=Year, y=Drug.use.disorders..deaths.)) + 
+  geom_line(color='blue', size=1.2) +
+  geom_point(size = 1, alpha=0.3) +
+  theme_grey() +
+  theme(plot.background=element_rect(fill="azure3")) + 
+  scale_x_continuous(breaks=seq(1990, 2017, 27)) + 
+  labs( x = "Years", y = "Drug Use Related Deaths", 
+        title ="Deaths Resulting from Substance Use Disorder In Greece",subtitle = "(1990-2017)") +
+  theme(axis.title = element_text( angle = 360, 
+                                   color="black", size=13, face=3)) + 
+  theme(axis.text = element_text(angle = 10, 
+                                 color="blue", size=8, face=3))
+
+
+#Parallel visualization of the two graphs for comparisson 
+grid.arrange(dr, h, ncol=2)
+
+```
+
+Parallel comparison of the graphs illustrates their striking simillarity. Apart from the higher peak that is reached in the Deaths Resulting from Substance Use Disorder graph, which is logical since it combines the deaths from all drugs, and apart from the lower plateu reached at the end in th Heroin graph the, two plots are almost identical. This evidently proves that heroin is the leading cause of drug deaths in greece.
+
+
+
+
+### Project Summary 
+
+In conclusion, the graphs ilustrate the __prevelance of deaths resulting from drug use disorder__ in the society of Greece, as well as the __prominant role of opiods__.
+Importantly, the graphs seems to indicate that the work done from organisation and political parties during the the past decade in order to reduce the substance use related deaths has yielded considerable result as from 2005, since the heroin deaths, and the overal drug deaths, have fallen substantially and reached a plateu in 2014 which is sustained until 2017. However, it should be noted that it would be unwise to accredit the reduction simply to the works of antidrug organizations. There are other vital reasons that could result on the reduction of heroine deaths and provide us with a wrongfull idea of the true drug problem of Greece. One of crucial reason is the emergance of a new, cheapper and astonishgly more dangerous drug named __"shisha" or "sisa"__ ( __5__, __2__). The use of this particular drug has been observed to be increased by twofold due to the socioeconmic crisis of Greece __(6)__ and many heroin addicts prefer it due to its low price and availabilty, however it was not included in the present visualisation as there are no sufficient data on its use provided by Our World in Data. _(If interested there is an excellent free documentary from VICE-UK on Youtube that illustrates the use of this new sisa drug along with the general drug propblem that Greece faces, youtubelink: [https://www.youtube.com/watch?v=Uo37vW2SW-U])_
+
+
+
+
+
+
+### Bibliografy
+
+__1__ _Kentikelenis, A., Karanikolos, M., Papanicolas, I., Basu, S., McKee, M., & Stuckler, D. (2011). Health effects of financial crisis: omens of a Greek tragedy. The Lancet, 378(9801), 1457-1458_
+DOI: [https://doi.org/10.1016/S0140-6736(11)61556-0]
+
+__2__ _Gotsinas, K. (2014). Attitudes towards Heroin Addicts and Addiction in Inter-War Greece. Central Europe, 12(2), 174-194._
+DOI: [https://doi.org/10.1179/1479096314Z.00000000030]
+
+__3__ _Paraskevis, D., Nikolopoulos, G., Tsiara, C., Paraskeva, D., Antoniadou, A., Lazanas, M., ... & Hatzakis, A. (2011). HIV-1 outbreak among injecting drug users in Greece, 2011: a preliminary report. Eurosurveillance, 16(36), 19962._
+DOI: [https://doi.org/10.2807/ese.16.36.19962-en]
+
+__4__ _Pharris, A., Wiessing, L., Sfetcu, O., Hedrich, D., Botescu, A., Fotiou, A., ... & Griffiths, P. (2011). Human immunodeficiency virus in injecting drug users in Europe following a reported increase of cases in Greece and Romania, 2011. Eurosurveillance, 16(48), 20032._
+DOI: [https://doi.org/10.2807/ese.16.48.20032-en]
+
+__5__ _Triantos, P., Papanastasatos, G., Poulopoulos, C., & Zaxaropoulos, Y. (2014). Patterns of use and perceptions of drug addicts in Greece about “shisha”(a new synthetic drug) at economic crisis era. Drugs and Alcohol Today._
+DOI: [https://doi.org/10.1108/DAT-10-2013-0041] 
+
+__6__ _Thomaidis, N. S., Gago-Ferrero, P., Ort, C., Maragou, N. C., Alygizakis, N. A., Borova, V. L., & Dasenaki, M. E. (2016). Reflection of socioeconomic changes in wastewater: licit and illicit drug use patterns. Environmental science & technology, 50(18), 10065-10072._
+DOI: [https://doi.org/10.1021/acs.est.6b02417]
